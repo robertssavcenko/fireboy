@@ -12,6 +12,7 @@
     }
     canvas {
         display: block;
+        border: 2px solid black; /* Add a black border around the canvas */
     }
 </style>
 </head>
@@ -24,6 +25,7 @@
     let x = canvas.width / 2;
     let y = canvas.height / 2;
     const squareSize = 50;
+    const borderThickness = 2;
 
     function drawSquare() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -32,8 +34,16 @@
     }
 
     function moveSquare(dx, dy) {
-        x += dx;
-        y += dy;
+        const newX = x + dx;
+        const newY = y + dy;
+
+        // Check if the new position is within the canvas boundaries
+        if (newX - squareSize / 2 >= borderThickness && newX + squareSize / 2 <= canvas.width - borderThickness &&
+            newY - squareSize / 2 >= borderThickness && newY + squareSize / 2 <= canvas.height - borderThickness) {
+            x = newX;
+            y = newY;
+        }
+
         drawSquare();
     }
 
