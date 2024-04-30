@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simple Canvas Movement</title>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+    }
+    canvas {
+        display: block;
+    }
+</style>
+</head>
+<body>
+<canvas id="myCanvas" width="800" height="600"></canvas>
+<script>
+    const canvas = document.getElementById('myCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let x = canvas.width / 2;
+    let y = canvas.height / 2;
+    const squareSize = 50;
+
+    function drawSquare() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#FF0000';
+        ctx.fillRect(x - squareSize / 2, y - squareSize / 2, squareSize, squareSize);
+    }
+
+    function moveSquare(dx, dy) {
+        x += dx;
+        y += dy;
+        drawSquare();
+    }
+
+    document.addEventListener('keydown', function(event) {
+        switch(event.key) {
+            case 'ArrowUp':
+                moveSquare(0, -10);
+                break;
+            case 'ArrowDown':
+                moveSquare(0, 10);
+                break;
+            case 'ArrowLeft':
+                moveSquare(-10, 0);
+                break;
+            case 'ArrowRight':
+                moveSquare(10, 0);
+                break;
+        }
+    });
+    
+    drawSquare(); // Initial drawing
+</script>
+</body>
+</html>
