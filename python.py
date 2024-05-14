@@ -22,13 +22,12 @@ class ContinuousMovementApp:
         self.dx = 0
         self.dy = 0
         self.key_down = False
-        self.jump_cooldown = 0
-        self.jump_cooldown_duration = 0.5  # 0.5 seconds cooldown
 
         # Position of the brown box
         self.brown_box_x = self.canvas_width - 100  # Adjusted position
         self.brown_box_y = self.canvas_height - 100  # Adjusted position
         self.brown_box_size = 150  # Increased size
+        self.brown_box_solid_height = 5  # Height of the solid part at the top
 
         self.draw_floor()
         self.draw_water()
@@ -60,7 +59,11 @@ class ContinuousMovementApp:
     def draw_brown_box(self):
         self.canvas.create_rectangle(self.brown_box_x, self.brown_box_y,
                                      self.brown_box_x + self.brown_box_size, self.brown_box_y + self.brown_box_size,
-                                     fill="#D2B48C", outline="", width=0)  # No outline
+                                     fill="#CD853F", outline="", width=0)  # Light brown color
+        # Draw solid part at the top of the box
+        self.canvas.create_rectangle(self.brown_box_x, self.brown_box_y,
+                                     self.brown_box_x + self.brown_box_size, self.brown_box_y + self.brown_box_solid_height,
+                                     fill="#8B4513", outline="", width=0)
 
     def move_square(self):
         new_x = self.x + self.dx
@@ -69,8 +72,8 @@ class ContinuousMovementApp:
         # Movement boundaries
         if new_x - self.square_size // 2 < self.border_thickness:
             new_x = self.square_size // 2
-        elif new_x + self.square_size // 2 > self.brown_box_x - self.border_thickness:
-            new_x = self.brown_box_x - self.square_size // 2 - self.border_thickness
+        elif new_x + self.square_size // 2 > self.canvas_width - self.border_thickness:
+            new_x = self.canvas_width - self.square_size // 2 - self.border_thickness
 
         if new_y + self.square_size // 2 > self.canvas_height - self.border_thickness:
             new_y = self.canvas_height - self.square_size // 2 - self.border_thickness
@@ -78,22 +81,12 @@ class ContinuousMovementApp:
         elif new_y - self.square_size // 2 < self.border_thickness:
             new_y = self.square_size // 2 + self.border_thickness
 
-        # Collision with brown box
-        if (new_x - self.square_size // 2 < self.brown_box_x + self.brown_box_size and
-                new_x + self.square_size // 2 > self.brown_box_x and
-                new_y + self.square_size // 2 > self.brown_box_y and
-                new_y - self.square_size // 2 < self.brown_box_y + self.brown_box_size):
-            # Check if on top of the brown box
-            if self.y + self.square_size // 2 <= self.brown_box_y:
-                new_y = self.brown_box_y - self.square_size // 2
-            else:
-                # Move with the brown box
-                dx_box = self.brown_box_x - (self.brown_box_x - self.dx)
-                new_x += dx_box
-
-        # Apply gravity if not on any surface
-        if new_y + self.square_size // 2 < self.canvas_height - self.border_thickness:
-            self.dy += self.gravity
+        # Check if player is standing on the box
+        if (self.x + self.square_size // 2 > self.brown_box_x and
+            self.x - self.square_size // 2 < self.brown_box_x + self.brown_box_size and
+            self.y + self.square_size // 2 >= self.brown_box_y and
+            self.y - self.square_size // 2 < self.brown_box_y + self.brown_box_solid_height):
+            new_y = self.brown_box_y - self.square_size // 2
 
         self.x = new_x
         self.y = new_y
@@ -101,9 +94,15 @@ class ContinuousMovementApp:
         self.draw_square()
 
     def jump(self):
-        if self.jump_cooldown <= 0:
-            self.jump_cooldown = self.jump_cooldown_duration
-            self.dy += self.jump_speed
+        self.dy += self.jump_speed
+
+    def apply_gravity(self):
+        # Apply gravity only if the square is not on the brown box
+        if not (self.x + self.square_size // 2 > self.brown_box_x and
+                self.x - self.square_size // 2 < self.brown_box_x + self.brown_box_size and
+                self.y + self.square_size // 2 >= self.brown_box_y and
+                self.y - self.square_size // 2 < self.brown_box_y + self.brown_box_solid_height):
+            self.dy += self.gravity
 
     def start_movement(self):
         if not self.key_down:
@@ -115,9 +114,8 @@ class ContinuousMovementApp:
     def continuous_movement(self):
         if self.key_down:
             self.move_square()
+            self.apply_gravity()  # Apply gravity continuously
             self.check_collision()
-            if self.jump_cooldown > 0:
-                self.jump_cooldown -= 0.02  # Decrease cooldown timer
             self.master.after(20, self.continuous_movement)
 
     def check_collision(self):
